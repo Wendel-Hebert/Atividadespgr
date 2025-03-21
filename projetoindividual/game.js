@@ -132,14 +132,19 @@ class GameScene extends Phaser.Scene {
         // Move obstaculo
         obstaculo.x += obstaculoSpeed * obstaculo.direcaoX;
         obstaculo.y += obstaculoSpeed * obstaculo.direcaoY;
-        obstaculo.rotation += 0.05; // Rotaciona o obstáculo
-        if (obstaculo.x >= larguraJogo || obstaculo.x <= 0) {
-            obstaculo.direcaoX *= -1; // Muda a direção no eixo x
-            obstaculo.flipX = !obstaculo.flipX; // Flip the obstacle
+        obstaculo.rotation += 0.05; // Rotação contínua
+        obstaculo.angle += 3; // Giro contínuo
+
+        // Verifica colisão com as bordas e inverte direção
+        if (obstaculo.x >= larguraJogo - obstaculo.width/2 || obstaculo.x <= obstaculo.width/2) {
+            obstaculo.direcaoX *= -1;
+            obstaculo.flipX = !obstaculo.flipX;
+            obstaculo.setScale(obstaculo.scaleX * -1, obstaculo.scaleY); // Inverte a escala no eixo X
         }
-        if (obstaculo.y >= alturaJogo || obstaculo.y <= 0) {
-            obstaculo.direcaoY *= -1; // Muda a direção no eixo y
-            obstaculo.flipY = !obstaculo.flipY; // Flip the obstacle
+        if (obstaculo.y >= alturaJogo - obstaculo.height/2 || obstaculo.y <= obstaculo.height/2) {
+            obstaculo.direcaoY *= -1;
+            obstaculo.flipY = !obstaculo.flipY;
+            obstaculo.setScale(obstaculo.scaleX, obstaculo.scaleY * -1); // Inverte a escala no eixo Y
         }
     }
 }
@@ -148,8 +153,11 @@ class GameScene extends Phaser.Scene {
 function resizeGame() {
     larguraJogo = window.innerWidth;
     alturaJogo = window.innerHeight;
-
-    game.scale.resize(larguraJogo, alturaJogo);
+    
+    if (game.scale) {
+        game.scale.resize(larguraJogo, alturaJogo);
+        game.scale.refresh();
+    }
 }
 
 function createObstacle(scene) {
@@ -168,7 +176,14 @@ const config = {
     type: Phaser.AUTO,
     width: larguraJogo,
     height: alturaJogo,
-    scene: [InitialScreen, GameScene], // Inclui ambas as cenas
+    scene: [InitialScreen, GameScene],
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        parent: 'game',
+        width: '100%',
+        height: '100%',
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     physics: {
         default: 'arcade',
         arcade: {
